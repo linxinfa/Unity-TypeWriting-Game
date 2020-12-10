@@ -23,6 +23,4 @@ public class EntryScene : MonoBehaviour
             SceneManager.LoadScene(1);
         });
     }
-
-
 }

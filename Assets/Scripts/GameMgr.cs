@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
+using System;
 
 /// <summary>
 /// 游戏管理
@@ -16,9 +17,17 @@ public class GameMgr
         gameOver = false;
         m_keyList.Clear();
 
+        GenKeys();
+    }
+
+    /// <summary>
+    /// 生成字母盘
+    /// </summary>
+    private void GenKeys()
+    {
         for (int i = 0; i < 16; ++i)
         {
-            m_keyList.Add(GenOneLetter());
+            m_keyList.Add(GenOneKey());
         }
     }
 
@@ -26,19 +35,44 @@ public class GameMgr
     /// 生成一个字母
     /// </summary>
     /// <returns></returns>
-    private KeyCode GenOneLetter()
+    private KeyCode GenOneKey()
     {
-        var key = (KeyCode)Random.Range((int)KeyCode.A, (int)KeyCode.Z);
+        var key = (KeyCode)UnityEngine.Random.Range((int)KeyCode.A, (int)KeyCode.Z);
         for(int i=0,cnt=m_keyList.Count;i<cnt;++i)
         {
             if(m_keyList[i] == key)
             {
-                return GenOneLetter();
+                // 如果生成的字母已存在，则递归生成
+                return GenOneKey();
             }
         }
         return key;
     }
 
+    /// <summary>
+    /// 获取按键类型
+    /// </summary>
+    /// <returns></returns>
+    public KeyCode GetKeyDownCode()
+    {
+        if (Input.anyKeyDown)
+        {
+            foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode)))
+            {
+                if (Input.GetKeyDown(keyCode))
+                {
+                    return keyCode;
+                }
+            }
+        }
+        return KeyCode.None;
+    }
+
+    /// <summary>
+    /// 按键按下
+    /// </summary>
+    /// <param name="pressKey"></param>
+    /// <returns></returns>
     public bool OnKey(KeyCode pressKey)
     {
         var bingoIndex = IsKeyBingo(pressKey);
@@ -54,6 +88,11 @@ public class GameMgr
         }
     }
 
+    /// <summary>
+    /// 判断按键是否在字母盘中
+    /// </summary>
+    /// <param name="key">按键</param>
+    /// <returns></returns>
     private int IsKeyBingo(KeyCode key)
     {
         for (int i = 0, cnt = m_keyList.Count; i < cnt; ++i)
@@ -65,14 +104,16 @@ public class GameMgr
     }
 
     /// <summary>
-    /// 正确
+    /// 按键正确
     /// </summary>
     private void OnKeyBingo(int bingoIndex)
     {
+        // 加连击
         ++comboCnt;
 
         if (comboCnt >= 3)
         {
+            // 加血加分，连击加持
             blood += 150;
             if (blood > MAX_BLOOD)
                 blood = MAX_BLOOD;
@@ -81,13 +122,15 @@ public class GameMgr
         }
         else
         {
+            // 加血加分
             blood += 50;
             score += 10;
             EventDispatcher.Instance.DispatchEvent(EventNameDef.EVENT_PLAY_ANI, "walk");
         }
 
+        // 生成新的字母
         var oldKey = m_keyList[bingoIndex];
-        var newKey = GenOneLetter();
+        var newKey = GenOneKey();
         m_keyList[bingoIndex] = newKey;
 
         EventDispatcher.Instance.DispatchEvent(EventNameDef.EVENT_KEY_BINGO_INDEX, bingoIndex, oldKey, newKey);
@@ -95,9 +138,14 @@ public class GameMgr
         EventDispatcher.Instance.DispatchEvent(EventNameDef.EVENT_UPDATE_SCORE, score);
     }
 
+    /// <summary>
+    /// 按键错误
+    /// </summary>
     private void OnKeyError()
     {
+        // 连击中断
         comboCnt = 0;
+        // 扣血
         blood -= 30;
         EventDispatcher.Instance.DispatchEvent(EventNameDef.EVENT_COMBO, comboCnt);
         EventDispatcher.Instance.DispatchEvent(EventNameDef.EVENT_PLAY_ANI, "hit");
@@ -165,14 +213,13 @@ public class GameMgr
     /// </summary>
     public bool gameOver { get; private set; }
 
-
-    public List<KeyCode> keyList { get { return m_keyList; } }
     /// <summary>
     /// 按键列表
     /// </summary>
+    public List<KeyCode> keyList { get { return m_keyList; } }
     private List<KeyCode> m_keyList = new List<KeyCode>();
 
-    private StringBuilder m_keyListSbr = new StringBuilder();
+
 
     /// <summary>
     /// 单例模式

@@ -19,6 +19,7 @@ public class GameScene : MonoBehaviour
 
     private void Awake()
     {
+        // 注册事件
         EventDispatcher.Instance.Regist(EventNameDef.EVENT_KEY_BINGO_INDEX, OnEventKeyBingoIndex);
         EventDispatcher.Instance.Regist(EventNameDef.EVENT_COMBO, OnEventCombo);
         EventDispatcher.Instance.Regist(EventNameDef.EVENT_PLAY_ANI, OnEventPlayAni);
@@ -29,11 +30,13 @@ public class GameScene : MonoBehaviour
         m_aniCtrler = new CharacterAniCtrler();
         m_aniCtrler.Init(anitor);
 
+        // 开始游戏
         StartGame();
     }
 
     private void OnDestroy()
     {
+        // 注销事件
         EventDispatcher.Instance.UnRegist(EventNameDef.EVENT_KEY_BINGO_INDEX, OnEventKeyBingoIndex);
         EventDispatcher.Instance.UnRegist(EventNameDef.EVENT_COMBO, OnEventCombo);
         EventDispatcher.Instance.UnRegist(EventNameDef.EVENT_PLAY_ANI, OnEventPlayAni);
@@ -42,13 +45,18 @@ public class GameScene : MonoBehaviour
         EventDispatcher.Instance.UnRegist(EventNameDef.EVENT_GAMEOVER, OnEventGameOver);
     }
 
+    /// <summary>
+    /// 开始游戏
+    /// </summary>
     private void StartGame()
     {
         GameMgr.Instance.Init();
         TextEffect.Init();
+        // 初始化血量
         bloodSlider.maxValue = GameMgr.Instance.blood;
         bloodSlider.value = GameMgr.Instance.blood;
         bloodImage.enabled = true;
+        // 生成字母盘
         keyGrid.CreateKeyList(GameMgr.Instance.keyList);
 
         comboText.gameObject.SetActive(false);
@@ -56,40 +64,34 @@ public class GameScene : MonoBehaviour
         gameOverDlg.Hide();
     }
 
-    public KeyCode getKeyDownCode()
-    {
-        if (Input.anyKeyDown)
-        {
-            foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode)))
-            {
-                if (Input.GetKeyDown(keyCode))
-                {
-                    //Debug.Log(keyCode.ToString());
-                    return keyCode;
-                }
-            }
-        }
-        return KeyCode.None;
-    }
+   
 
     void Update()
     {
         if (GameMgr.Instance.gameOver) return;
+        // 更新连击定时器
         GameMgr.Instance.UpdateComboTimer();
 
+        // 更新血量ui
         bloodSlider.value = GameMgr.Instance.blood;
         GameMgr.Instance.blood -= GameMgr.Instance.hardLevel;
 
-        var keyCode = getKeyDownCode();
+        // 按键判断
+        var keyCode = GameMgr.Instance.GetKeyDownCode();
         if (KeyCode.None == keyCode) return;
         GameMgr.Instance.OnKey(keyCode);
     }
 
     private void LateUpdate()
     {
+        // 更新动画控制器
         m_aniCtrler.LateUpdate();
     }
 
+    /// <summary>
+    /// 按键正确事件
+    /// </summary>
+    /// <param name="args"></param>
     private void OnEventKeyBingoIndex(params object[] args)
     {
         int index = (int)args[0];
@@ -98,6 +100,10 @@ public class GameScene : MonoBehaviour
         keyGrid.UpdateKeyByIndex(index, oldKey, newKey);
     }
 
+    /// <summary>
+    /// 连击事件
+    /// </summary>
+    /// <param name="args"></param>
     private void OnEventCombo(params object[] args)
     {
         var combo = (int)args[0];
@@ -105,6 +111,10 @@ public class GameScene : MonoBehaviour
         comboText.gameObject.SetActive(combo >= 3);
     }
 
+    /// <summary>
+    /// 播放动画事件
+    /// </summary>
+    /// <param name="args"></param>
     private void OnEventPlayAni(params object[] args)
     {
         var ani = (string)args[0];
@@ -118,18 +128,30 @@ public class GameScene : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 更新得分事件
+    /// </summary>
+    /// <param name="args"></param>
     private void OnEventUpdateScore(params object[] args)
     {
         var score = (int)args[0];
         scoreText.text = score.ToString();
     }
 
+    /// <summary>
+    /// 游戏结束事件
+    /// </summary>
+    /// <param name="args"></param>
     private void OnEventGameOver(params object[] args)
     {
         bloodImage.enabled = false;
         gameOverDlg.Show(GameMgr.Instance.score);
     }
 
+    /// <summary>
+    /// 重新开始游戏事件
+    /// </summary>
+    /// <param name="args"></param>
     private void OnEventRestartGame(params object[] args)
     {
         m_aniCtrler.PlayReviveImmediately();

@@ -3,8 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 文本特效
+/// </summary>
 public class TextEffect : MonoBehaviour
 {
+
+    /// <summary>
+    /// 初始化
+    /// </summary>
     public static void Init()
     {
         if(null != s_root)
@@ -24,6 +31,11 @@ public class TextEffect : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// 显示特效
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="pos"></param>
     public static void Show(string text, Vector3 pos)
     {
         if (null == s_prefab)
@@ -34,6 +46,7 @@ public class TextEffect : MonoBehaviour
         TextEffect bhv = null;
         if (s_objPool.Count > 0)
         {
+            // 从对象池中取对象，
             bhv = s_objPool.Dequeue();
         }
         else
@@ -47,6 +60,9 @@ public class TextEffect : MonoBehaviour
         bhv.keyText.text = text;
     }
 
+    /// <summary>
+    /// 动画结束事件的响应函数
+    /// </summary>
     public void OnAnimationEnd()
     {
         gameObject.SetActive(false);
@@ -55,8 +71,17 @@ public class TextEffect : MonoBehaviour
     }
 
     private static GameObject s_prefab;
+    /// <summary>
+    /// 对象池
+    /// </summary>
     private static Queue<TextEffect> s_objPool = new Queue<TextEffect>();
+    /// <summary>
+    /// 根节点
+    /// </summary>
     private static Transform s_root;
 
+    /// <summary>
+    /// 文字组件
+    /// </summary>
     public Text keyText;
 }

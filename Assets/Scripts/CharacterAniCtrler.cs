@@ -14,10 +14,14 @@ public class CharacterAniCtrler
     private const string STR_WALK = "walk";
     private const string STR_RUN = "run";
     private const string STR_DEATH = "die";
+
+    /// <summary>
+    /// 角色动画Animator组件
+    /// </summary>
     private Animator m_animator;
 
     /// <summary>
-    /// 准备播放的动作
+    /// 动画队列
     /// </summary>
     private Queue<int> m_animQueue = new Queue<int>();
     private AnimatorClipInfo[] mClips = null;
@@ -32,6 +36,9 @@ public class CharacterAniCtrler
         m_animator = ani;
     }
 
+    /// <summary>
+    /// 每帧调用
+    /// </summary>
     public void LateUpdate()
     {
         if (m_animator == null)
@@ -141,6 +148,9 @@ public class CharacterAniCtrler
     }
 }
 
+/// <summary>
+/// 状态定义，默认为Idle状态。
+/// </summary>
 public enum CharacterAniId
 {
     Idle = 1,
